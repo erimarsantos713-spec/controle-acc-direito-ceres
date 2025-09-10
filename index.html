@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Atividades Complementares - Direito</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+
+        .toast {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <!-- Cabeçalho -->
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Controle de Atividades Complementares</h1>
+            <p class="text-md text-gray-600">Curso de Direito - UFRN/CERES</p>
+        </header>
+
+        <!-- Painel Principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Coluna Esquerda: Ações e Resumo -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Nome do Estudante -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <label for="studentName" class="block text-sm font-medium text-gray-700 mb-2">Nome do Estudante</label>
+                    <input type="text" id="studentName" value="Erimar Santos" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Ações -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Ações Rápidas</h2>
+                    <div class="space-y-3">
+                        <button id="aiAnalysisBtn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md">
+                            Analisar Certificado (PDF/IA)
+                        </button>
+                        <input type="file" id="fileInput" class="hidden" accept="application/pdf,image/png,image/jpeg">
+                        <p class="text-xs text-center text-gray-500 mt-2 px-2">No telemóvel, pode ser necessário navegar até à pasta 'Ficheiros' para encontrar o seu PDF.</p>
+                        <button id="manualEntryBtn" class="w-full bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 transition-colors duration-300 shadow-md">
+                            Registo Manual
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resumo Geral -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Resumo Geral</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Total de Horas Computadas</span>
+                            <span id="totalHours" class="font-bold text-lg">0 / 190</span>
+                        </div>
+                        <div id="totalHoursStatus" class="text-right font-semibold"></div>
+                        <hr>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Categorias com Pontuação</span>
+                            <span id="totalCategories" class="font-bold text-lg">0 / 3</span>
+                        </div>
+                        <div id="totalCategoriesStatus" class="text-right font-semibold"></div>
+                    </div>
+                    <button id="generatePdfBtn" class="mt-6 w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors duration-300 shadow-md">
+                        Gerar Relatório PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Detalhes e Tabela -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Detalhamento por Categoria -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Detalhamento por Categoria</h2>
+                    <div id="categoryDetails" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <!-- Categorias serão inseridas aqui via JS -->
+                    </div>
+                </div>
+
+                <!-- Tabela de Atividades -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">As Minhas Atividades Registadas</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Descrição</th>
+                                    <th scope="col" class="px-6 py-3">Instituição</th>
+                                    <th scope="col" class="px-6 py-3">Período</th>
+                                    <th scope="col" class="px-6 py-3">C.H.</th>
+                                    <th scope="col" class="px-6 py-3">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activitiesTableBody">
+                                <!-- Linhas da tabela serão inseridas aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal de Registo Manual -->
+    <div id="entryModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 md:p-8 transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-bold mb-6 text-gray-900">Registar Atividade</h2>
+            <form id="activityForm">
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label for="activityType" class="block text-sm font-medium text-gray-700">Tipo de Atividade <span class="text-red-500">*</span></label>
+                        <select id="activityType" name="activityType" required class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <!-- Opções preenchidas via JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Descrição Pessoal <span class="text-red-500">*</span></label>
+                        <input type="text" name="description" id="description" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="institution" class="block text-sm font-medium text-gray-700">Instituição/Evento <span class="text-red-500">*</span></label>
+                        <input type="text" name="institution" id="institution" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="startDate" class="block text-sm font-medium text-gray-700">Data de Início</label>
+                            <input type="date" name="startDate" id="startDate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="endDate" class="block text-sm font-medium text-gray-700">Data de Fim</label>
+                            <input type="date" name="endDate" id="endDate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="hours" class="block text-sm font-medium text-gray-700">Carga Horária (horas) <span class="text-red-500">*</span></label>
+                        <input type="number" name="hours" id="hours" required min="1" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" id="cancelBtn" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Loader para IA -->
+    <div id="loader" class="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center hidden z-50">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+        <p class="text-white text-lg mt-4">A analisar o certificado... Por favor, aguarde.</p>
+    </div>
+
+    <!-- Toast de Notificação -->
+    <div id="toast" class="toast fixed bottom-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-xl opacity-0 transform translate-y-10">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Definição das regras baseadas na Resolução Nº 001/2023
+            const regrasAtividades = {
+                categorias: {
+                    1: { nome: "I - Atividades de iniciação à docência", limite: 120 },
+                    2: { nome: "II - Atividades de iniciação à pesquisa", limite: 120 },
+                    3: { nome: "III - Atividades de extensão", limite: 120 },
+                    4: { nome: "IV - Atividade não obrigatória de iniciação profissional", limite: 120 },
+                    5: { nome: "V - Produção técnica ou científica", limite: 120 },
+                    6: { nome: "VI - Participação em evento, seminário ou curso", limite: 120 }
+                },
+                atividades: [
+                    // Categoria I
+                    { id: '1-1', categoriaId: 1, descricao: "Monitoria/Tutoria em projeto de ensino (PROGRAD)", CHI: null, CHS: 30 },
+                    { id: '1-2', categoriaId: 1, descricao: "Monitoria voluntária reconhecida pela Coordenação", CHI: null, CHS: 30 },
+                    { id: '1-3', categoriaId: 1, descricao: "Apresentação em projetos de ensino (PROGRAD)", CHI: null, CHS: 30 },
+                    // Categoria II
+                    { id: '2-1', categoriaId: 2, descricao: "Iniciação Científica (PROPESQ)", CHI: null, CHS: 60 },
+                    { id: '2-2', categoriaId: 2, descricao: "Programa de Educação Tutorial (PET) ou equivalente", CHI: null, CHS: 60 },
+                    { id: '2-3', categoriaId: 2, descricao: "Participação em Projeto/Grupo de Pesquisa", CHI: null, CHS: 60 },
+                    { id: '2-4', categoriaId: 2, descricao: "Participação em reuniões/eventos de pesquisa", CHI: null, CHS: 30 },
+                    // Categoria III
+                    { id: '3-1', categoriaId: 3, descricao: "Editoração de Revista Acadêmica Estudantil", CHI: null, CHS: 30 },
+                    { id: '3-2', categoriaId: 3, descricao: "Participação em Ação de Extensão (PROEX)", CHI: null, CHS: 30 },
+                    { id: '3-3', categoriaId: 3, descricao: "Atividades com a Comunidade via Projeto de Extensão", CHI: 10, CHS: null },
+                    { id: '3-4', categoriaId: 3, descricao: "Representante Estudantil em órgãos colegiados/entidades", CHI: 30, CHS: 30 },
+                    { id: '3-5', categoriaId: 3, descricao: "Representante Estudantil em comissões eleitorais", CHI: 10, CHS: null },
+                    // Categoria IV
+                    { id: '4-1', categoriaId: 4, descricao: "Estágios não obrigatórios conveniados com a UFRN", CHI: null, CHS: 30 },
+                    { id: '4-2', categoriaId: 4, descricao: "Exercício de função pública não remunerada (jurídica)", CHI: null, CHS: 30 },
+                    { id: '4-3', categoriaId: 4, descricao: "Participação em comissão/cargo em entidade de classe", CHI: null, CHS: 30 },
+                    // Categoria V
+                    { id: '5-1', categoriaId: 5, descricao: "Comunicação em evento científico (local)", CHI: 10, CHS: null },
+                    { id: '5-2', categoriaId: 5, descricao: "Comunicação em evento científico (regional)", CHI: 15, CHS: null },
+                    { id: '5-3', categoriaId: 5, descricao: "Comunicação em evento científico (nacional/internacional)", CHI: 20, CHS: null },
+                    { id: '5-4', categoriaId: 5, descricao: "Publicação em magazines, jornais ou similares", CHI: 5, CHS: null },
+                    { id: '5-5', categoriaId: 5, descricao: "Publicação em periódicos (Qualis C ou sem) / anais (local/regional)", CHI: 20, CHS: null },
+                    { id: '5-6', categoriaId: 5, descricao: "Publicação em periódicos (Qualis B) / anais (nacional)", CHI: 40, CHS: null },
+                    { id: '5-7', categoriaId: 5, descricao: "Publicação em periódicos (Qualis A) / anais (internacional)", CHI: 60, CHS: null },
+                    { id: '5-8', categoriaId: 5, descricao: "Publicação de capítulo de livro (local/regional)", CHI: 20, CHS: null },
+                    { id: '5-9', categoriaId: 5, descricao: "Publicação de capítulo de livro (nacional)", CHI: 30, CHS: null },
+                    { id: '5-10', categoriaId: 5, descricao: "Publicação de capítulo de livro (internacional)", CHI: 40, CHS: null },
+                    // Categoria VI
+                    { id: '6-1', categoriaId: 6, descricao: "Organização de evento acadêmico (local)", CHI: 10, CHS: 30 },
+                    { id: '6-2', categoriaId: 6, descricao: "Organização de evento acadêmico (regional)", CHI: 15, CHS: 45 },
+                    { id: '6-3', categoriaId: 6, descricao: "Organização de evento acadêmico (nacional)", CHI: 30, CHS: 60 },
+                    { id: '6-4', categoriaId: 6, descricao: "Participação em eventos (local/regional)", CHI: 10, CHS: null },
+                    { id: '6-5', categoriaId: 6, descricao: "Participação em eventos (nacional)", CHI: 15, CHS: null },
+                    { id: '6-6', categoriaId: 6, descricao: "Participação em eventos (internacional)", CHI: 20, CHS: null }
+                ]
+            };
+            const META_HORAS = 190;
+            const META_CATEGORIAS = 3;
+
+            // Elementos da UI
+            const entryModal = document.getElementById('entryModal');
+            const manualEntryBtn = document.getElementById('manualEntryBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const activityForm = document.getElementById('activityForm');
+            const activityTypeSelect = document.getElementById('activityType');
+            const activitiesTableBody = document.getElementById('activitiesTableBody');
+            const generatePdfBtn = document.getElementById('generatePdfBtn');
+            const aiAnalysisBtn = document.getElementById('aiAnalysisBtn');
+            const fileInput = document.getElementById('fileInput');
+            const loader = document.getElementById('loader');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            // Estado da aplicação
+            let activities = JSON.parse(localStorage.getItem('atividades_direito')) || [];
+
+            // Funções
+            const showToast = (message, isError = false) => {
+                toastMessage.textContent = message;
+                toast.className = `toast fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-xl opacity-100 transform translate-y-0 ${isError ? 'bg-red-500' : 'bg-green-500'}`;
+                setTimeout(() => {
+                    toast.className = toast.className.replace('opacity-100 transform translate-y-0', 'opacity-0 transform translate-y-10');
+                }, 4000); // Aumentado o tempo para dar tempo de ler
+            };
+
+            const openModal = () => {
+                entryModal.classList.remove('hidden');
+                setTimeout(() => {
+                    entryModal.classList.remove('opacity-0');
+                    entryModal.querySelector('.transform').classList.remove('scale-95');
+                }, 10);
+            };
+
+            const closeModal = () => {
+                entryModal.querySelector('.transform').classList.add('scale-95');
+                entryModal.classList.add('opacity-0');
+                setTimeout(() => {
+                    entryModal.classList.add('hidden');
+                    activityForm.reset();
+                }, 300);
+            };
+
+            const populateActivityTypes = () => {
+                activityTypeSelect.innerHTML = '<option value="" disabled selected>Selecione uma atividade</option>';
+                Object.entries(regrasAtividades.categorias).forEach(([catId, cat]) => {
+                    const group = document.createElement('optgroup');
+                    group.label = cat.nome;
+                    const atividadesDoGrupo = regrasAtividades.atividades.filter(a => a.categoriaId == catId);
+                    atividadesDoGrupo.forEach(ativ => {
+                        const option = document.createElement('option');
+                        option.value = ativ.id;
+                        option.textContent = ativ.descricao;
+                        group.appendChild(option);
+                    });
+                    activityTypeSelect.appendChild(group);
+                });
+            };
+
+            const saveActivities = () => {
+                localStorage.setItem('atividades_direito', JSON.stringify(activities));
+            };
+
+            const calculateTotals = () => {
+                let totalHours = 0;
+                const hoursByCategory = {};
+                
+                activities.forEach(activity => {
+                    const rule = regrasAtividades.atividades.find(r => r.id === activity.activityTypeId);
+                    if (!rule) return;
+
+                    const categoryId = rule.categoriaId;
+                    const categoryLimit = regrasAtividades.categorias[categoryId].limite;
+                    
+                    if (!hoursByCategory[categoryId]) {
+                        hoursByCategory[categoryId] = 0;
+                    }
+
+                    const activityHours = rule.CHI ? Math.min(activity.hours, rule.CHI) : activity.hours;
+                    
+                    const potentialTotal = hoursByCategory[categoryId] + activityHours;
+                    hoursByCategory[categoryId] = Math.min(potentialTotal, categoryLimit);
+                });
+                
+                totalHours = Object.values(hoursByCategory).reduce((sum, h) => sum + h, 0);
+
+                const categoriesCount = Object.keys(hoursByCategory).filter(id => hoursByCategory[id] > 0).length;
+                return { totalHours, hoursByCategory, categoriesCount };
+            };
+            
+            const renderUI = () => {
+                const { totalHours, hoursByCategory, categoriesCount } = calculateTotals();
+
+                activitiesTableBody.innerHTML = '';
+                if (activities.length === 0) {
+                     activitiesTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4">Nenhuma atividade registada.</td></tr>';
+                } else {
+                    activities.forEach((activity, index) => {
+                        const rule = regrasAtividades.atividades.find(r => r.id === activity.activityTypeId);
+                        const row = document.createElement('tr');
+                        row.className = 'bg-white border-b';
+                        row.innerHTML = `
+                            <td class="px-6 py-4 font-medium text-gray-900">${activity.description}<br><small class="text-gray-500">${rule ? rule.descricao : 'Tipo inválido'}</small></td>
+                            <td class="px-6 py-4">${activity.institution}</td>
+                            <td class="px-6 py-4">${activity.startDate ? new Date(activity.startDate + 'T00:00:00-03:00').toLocaleDateString('pt-BR') : 'N/A'} - ${activity.endDate ? new Date(activity.endDate + 'T00:00:00-03:00').toLocaleDateString('pt-BR') : 'N/A'}</td>
+                            <td class="px-6 py-4 font-bold">${activity.hours}h</td>
+                            <td class="px-6 py-4"><button data-index="${index}" class="delete-btn text-red-600 hover:text-red-800 font-semibold">Excluir</button></td>
+                        `;
+                        activitiesTableBody.appendChild(row);
+                    });
+                }
+                
+                document.getElementById('totalHours').textContent = `${totalHours} / ${META_HORAS}`;
+                const totalHoursStatusEl = document.getElementById('totalHoursStatus');
+                if (totalHours >= META_HORAS) {
+                    totalHoursStatusEl.textContent = "Meta atingida";
+                    totalHoursStatusEl.className = "text-right font-semibold text-green-600";
+                } else {
+                    totalHoursStatusEl.textContent = "Meta não atingida";
+                    totalHoursStatusEl.className = "text-right font-semibold text-red-600";
+                }
+
+                document.getElementById('totalCategories').textContent = `${categoriesCount} / ${META_CATEGORIAS}`;
+                const totalCategoriesStatusEl = document.getElementById('totalCategoriesStatus');
+                if (categoriesCount >= META_CATEGORIAS) {
+                    totalCategoriesStatusEl.textContent = "Meta atingida";
+                    totalCategoriesStatusEl.className = "text-right font-semibold text-green-600";
+                } else {
+                    totalCategoriesStatusEl.textContent = "Meta não atingida";
+                    totalCategoriesStatusEl.className = "text-right font-semibold text-red-600";
+                }
+
+                const categoryDetailsContainer = document.getElementById('categoryDetails');
+                categoryDetailsContainer.innerHTML = '';
+                Object.entries(regrasAtividades.categorias).forEach(([id, cat]) => {
+                    const computedHours = hoursByCategory[id] || 0;
+                    const percentage = cat.limite > 0 ? (computedHours / cat.limite) * 100 : 0;
+                    const detailEl = document.createElement('div');
+                    detailEl.className = 'bg-gray-50 p-4 rounded-lg';
+                    detailEl.innerHTML = `
+                        <h4 class="font-semibold text-sm text-gray-700 truncate">${cat.nome}</h4>
+                        <p class="text-lg font-bold text-gray-900">${computedHours}h <span class="text-sm font-normal text-gray-500">/ ${cat.limite}h</span></p>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    `;
+                    categoryDetailsContainer.appendChild(detailEl);
+                });
+            };
+            
+            const handleFormSubmit = (event) => {
+                event.preventDefault();
+                const formData = new FormData(activityForm);
+                const newActivity = {
+                    id: Date.now(),
+                    activityTypeId: formData.get('activityType'),
+                    description: formData.get('description'),
+                    institution: formData.get('institution'),
+                    startDate: formData.get('startDate'),
+                    endDate: formData.get('endDate'),
+                    hours: parseInt(formData.get('hours'), 10),
+                };
+                activities.push(newActivity);
+                saveActivities();
+                renderUI();
+                closeModal();
+                showToast('Atividade guardada com sucesso!');
+            };
+
+            const handleDeleteActivity = (event) => {
+                if (event.target.classList.contains('delete-btn')) {
+                    const index = event.target.dataset.index;
+                    activities.splice(index, 1);
+                    saveActivities();
+                    renderUI();
+                    showToast('Atividade excluída.', true);
+                }
+            };
+            
+            const generatePDF = () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const studentName = document.getElementById('studentName').value || 'N/A';
+                const { totalHours, hoursByCategory, categoriesCount } = calculateTotals();
+
+                doc.setFontSize(18);
+                doc.text("Relatório de Atividades Complementares", 14, 22);
+                doc.setFontSize(11);
+                doc.text(`Estudante: ${studentName}`, 14, 30);
+                doc.text("Curso: Direito - UFRN/CERES", 14, 36);
+
+                const summaryBody = Object.entries(regrasAtividades.categorias).map(([id, cat]) => {
+                    return [cat.nome, `${hoursByCategory[id] || 0}h / ${cat.limite}h`];
+                });
+                summaryBody.push(['TOTAL DE HORAS COMPUTADAS', `${totalHours}h / ${META_HORAS}h`]);
+                summaryBody.push(['CATEGORIAS COM PONTUAÇÃO', `${categoriesCount} / ${META_CATEGORIAS}`]);
+
+                doc.autoTable({
+                    head: [['Resumo por Categoria', 'Horas Realizadas / Limite']],
+                    body: summaryBody,
+                    startY: 45,
+                    headStyles: { fillColor: [22, 160, 133] },
+                });
+                
+                const activitiesBody = activities.map(act => {
+                    const rule = regrasAtividades.atividades.find(r => r.id === act.activityTypeId);
+                    return [
+                        act.description,
+                        rule ? rule.descricao : 'N/A',
+                        act.institution,
+                        `${act.startDate ? new Date(act.startDate + 'T00:00:00-03:00').toLocaleDateString('pt-BR') : ''} - ${act.endDate ? new Date(act.endDate + 'T00:00:00-03:00').toLocaleDateString('pt-BR') : ''}`,
+                        `${act.hours}h`
+                    ];
+                });
+
+                doc.autoTable({
+                    head: [['Descrição Pessoal', 'Tipo de Atividade', 'Instituição', 'Período', 'C.H.']],
+                    body: activitiesBody,
+                    startY: doc.lastAutoTable.finalY + 15,
+                    headStyles: { fillColor: [44, 62, 80] },
+                });
+                
+                const fileName = `relatorio_acc_${studentName.toLowerCase().replace(/\s/g, '_')}.pdf`;
+                doc.save(fileName);
+            };
+
+            const analyzeFile = async (file) => {
+                loader.classList.remove('hidden');
+                let imageDataB64;
+
+                try {
+                    if (file.type === 'application/pdf') {
+                        const pdfData = await file.arrayBuffer();
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+                        const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                        const page = await pdf.getPage(1);
+                        const viewport = page.getViewport({ scale: 1.5 });
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        await page.render({ canvasContext: context, viewport: viewport }).promise;
+                        imageDataB64 = canvas.toDataURL('image/png').split(',')[1];
+                    } else if (file.type.startsWith('image/')) {
+                        imageDataB64 = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = e => resolve(e.target.result.split(',')[1]);
+                            reader.onerror = e => reject(e);
+                            reader.readAsDataURL(file);
+                        });
+                    } else {
+                        throw new Error("Formato de ficheiro não suportado.");
+                    }
+                } catch (error) {
+                    console.error("Erro ao processar ficheiro:", error);
+                    showToast(error.message || "Erro ao ler o ficheiro.", true);
+                    loader.classList.add('hidden');
+                    return;
+                }
+                
+                // --- CHAMADA À API GEMINI ---
+                // A chave da API é deixada em branco de propósito.
+                // A plataforma onde este código é executado injeta a chave automaticamente.
+                // Se estiver a executar este ficheiro localmente, a chamada à API falhará.
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const systemPrompt = `Você é um assistente especialista em analisar certificados de atividades acadêmicas. Sua tarefa é extrair as seguintes informações de uma imagem de certificado e retornar APENAS um objeto JSON. As chaves do JSON devem ser: "tipoAtividadeId", "descricao", "instituicao", "dataInicio", "dataFim", "cargaHoraria". Para "tipoAtividadeId", escolha o ID mais apropriado da lista abaixo. Para datas, use o formato AAAA-MM-DD. Se apenas uma data for encontrada, use-a para "dataFim". Para "cargaHoraria", extraia apenas o número de horas. Lista de Atividades: ${JSON.stringify(regrasAtividades.atividades, null, 2)}`;
+                
+                const payload = {
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    contents: [{
+                        role: "user",
+                        parts: [
+                            { text: "Analise a imagem deste certificado e extraia os dados em formato JSON." },
+                            { inlineData: { mimeType: "image/png", data: imageDataB64 } }
+                        ]
+                    }],
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.json();
+                        console.error("Erro da API:", errorBody);
+                        throw new Error(`A API retornou um erro: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    // CORREÇÃO: Tratamento de erro robusto para a resposta da IA
+                    if (!result.candidates || result.candidates.length === 0 || !result.candidates[0].content || !result.candidates[0].content.parts) {
+                        console.error("Resposta inválida da API:", result);
+                        const blockReason = result.promptFeedback?.blockReason;
+                        if (blockReason) {
+                            throw new Error(`A análise foi bloqueada pela IA. Motivo: ${blockReason}`);
+                        }
+                        throw new Error("A IA não retornou uma resposta válida. O certificado pode estar ilegível.");
+                    }
+
+                    const textResponse = result.candidates[0].content.parts[0].text;
+                    const cleanJsonString = textResponse.replace(/```json|```/g, '').trim();
+                    
+                    let extractedData;
+                    try {
+                        extractedData = JSON.parse(cleanJsonString);
+                    } catch (parseError) {
+                        console.error("Erro ao interpretar o JSON da IA:", parseError);
+                        console.error("Resposta recebida:", cleanJsonString);
+                        throw new Error("A IA retornou um formato de dados inesperado. Tente novamente.");
+                    }
+                    
+                    document.getElementById('activityType').value = extractedData.tipoAtividadeId || '';
+                    document.getElementById('description').value = extractedData.descricao || '';
+                    document.getElementById('institution').value = extractedData.instituicao || '';
+                    document.getElementById('startDate').value = extractedData.dataInicio || '';
+                    document.getElementById('endDate').value = extractedData.dataFim || '';
+                    document.getElementById('hours').value = extractedData.cargaHoraria || '';
+
+                    openModal();
+                    showToast("Certificado analisado! Verifique os dados.");
+                } catch (error) {
+                    console.error("Erro ao chamar a IA ou processar a resposta:", error);
+                    let userMessage = "Não foi possível analisar o certificado com a IA.";
+                    if (error.message.includes('Failed to fetch')) {
+                        userMessage += " Verifique a sua conexão ou tente aceder à aplicação através de um link público (online), não como um ficheiro local.";
+                    } else {
+                        userMessage += ` Detalhe: ${error.message}`;
+                    }
+                    showToast(userMessage, true);
+                } finally {
+                    loader.classList.add('hidden');
+                    fileInput.value = '';
+                }
+            };
+
+            // Event Listeners
+            manualEntryBtn.addEventListener('click', openModal);
+            cancelBtn.addEventListener('click', closeModal);
+            activityForm.addEventListener('submit', handleFormSubmit);
+            activitiesTableBody.addEventListener('click', handleDeleteActivity);
+            generatePdfBtn.addEventListener('click', generatePDF);
+            
+            aiAnalysisBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    analyzeFile(file);
+                }
+            });
+
+            // Inicialização
+            populateActivityTypes();
+            renderUI();
+        });
+    </script>
+</body>
+</html>
